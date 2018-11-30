@@ -95,6 +95,7 @@ __pycache__/
 *.so
 *.pyd
 *.xll
+_python_xll.c
 
 # Distribution / packaging
 .Python

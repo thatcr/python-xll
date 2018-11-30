@@ -17,6 +17,9 @@ def from_xloper(xloper):
     raise RuntimeError(f'unknown xloper type {xloper.xltype:d}')
 
 def to_xloper(value):
+    if isinstance(value, ffi.CData):
+        return value
+
     if value is None:
         result = ffi.new('LPXLOPER12')
         result.xltype = lib.xltypeBool
