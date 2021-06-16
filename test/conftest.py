@@ -39,7 +39,7 @@ EXCEL = r"C:\Program Files (x86)\Microsoft Office\root\Office16\EXCEL.EXE"
 
 
 @pytest.fixture(scope='session')
-def Application():
+def excel_application():
     Application = CreateObject('Excel.Application')
     yield Application
 
