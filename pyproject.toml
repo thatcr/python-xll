@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "python-xll"
+version = "0.1.0"
+description = "Python Excel Integration"
+authors = ["Rob Thatcher <thatcr@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+cffi = "^1.14.5"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.4"
+comtypes = "^1.1.10"
+flake8 = "^3.9.2"
+black = "^21.6b0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
