@@ -34,7 +34,7 @@ def xlfCaller():
 
     print(result)
 
-    ptr =ffi.gc(result, destructor=lambda x : None)
+    ptr = ffi.gc(result, destructor=lambda x : None)
     print(ptr, id(ptr))
 
     return result
@@ -48,7 +48,7 @@ def py_eval(source):
 @ffi.def_extern(error=0)
 def xlAutoOpen():
     print('xlAutoOpen', flush=True)
-
+    
     name =  xll.Excel(lib.xlGetName)
 
     exports = ExportDirectory(lib.pRVABase, lib.pExportDirectory)
@@ -106,4 +106,3 @@ def xlAutoRemove():
     return 1
 
 
-print("Loaded XLL")
