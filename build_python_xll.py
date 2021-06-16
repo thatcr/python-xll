@@ -125,19 +125,13 @@ BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD fdwReason, LPVOID lpvReason)
     
     if (fdwReason == DLL_PROCESS_ATTACH) {                          
         _set_export_directory(hInstDLL);
-
-        MessageBox(NULL, "Found Export Directory", "Hooray", MB_OK);
         
         if (Py_IsInitialized())
             return TRUE;
 
-        _set_python_home(); 
-
-        MessageBox(NULL, "All Done", "Hooray", MB_OK);               
-                
+        _set_python_home();                         
     }
-            
-    
+                
     return TRUE;
 }
  
