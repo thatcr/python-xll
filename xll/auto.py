@@ -8,7 +8,6 @@ from xll.api import Excel
 import inspect
 
 from _python_xll import ffi, lib
-#from _xlcall import lib
 
 from .convert import to_xloper
 
@@ -25,7 +24,7 @@ def onerror(exception, exc_value, traceback):
 
 @ffi.def_extern(error=None)
 def xlAutoFree12(xloper):
-    print('xlAutoFree12', xloper, id(xloper))
+    logger.info(f'xlAutoFree12 {xloper!r} {id(xloper)}')
 
 @ffi.callback("LPXLOPER12 (*)()")
 def xlfCaller():
@@ -36,9 +35,7 @@ def xlfCaller():
 
     result = to_xloper(text)
     result.xltype |= lib.xlbitDLLFree
-
-    print(result)
-
+    
     ptr = ffi.gc(result, destructor=lambda x : None)
     print(ptr, id(ptr))
 
