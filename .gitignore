@@ -5,3 +5,6 @@ __pycache__/
 _*.c
 Debug/
 Release/
+build/
+dist/
+*.egg-info/
