@@ -1,5 +1,6 @@
 import xll
 import sys
+import os.path
 import logging
 
 from xll.api import Excel
@@ -10,7 +11,6 @@ from _python_xll import ffi, lib
 #from _xlcall import lib
 
 from .convert import to_xloper
-from .export import ExportDirectory
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +44,7 @@ def xlfCaller():
 
     return result
 
+
 @ffi.callback("LPXLOPER12 (*)(const char*)")
 def py_eval(source):
     logging.info(f"Called py.eval with {source}")
@@ -56,12 +57,9 @@ def xlAutoOpen():
     logger.info("xlAutoOpen!")    
     name =  xll.Excel(lib.xlGetName)
 
-    logger.info(f"Python XLL Loaded from {name}")
-
-    exports = ExportDirectory(lib.pExportDirectory)
-
-    # # xll.Excel(lib.xlcAlert, "Hello World")
-    exports['_000'] = py_eval
+    logger.info(f"Python XLL Loaded from {name}")   
+    
+    lib.SetThunkProc(b"_000", py_eval)            
     xll.Excel(lib.xlfRegister,
               name,
               "_000",
@@ -76,7 +74,8 @@ def xlAutoOpen():
               "Python expression to evaluate"
               )
 
-    exports['_001'] = xlfCaller
+    # exports['_001'] = xlfCaller
+    lib.SetThunkProc(b"_001", xlfCaller)        
     xll.Excel(lib.xlfRegister,
               name,
               "_001",
@@ -89,9 +88,7 @@ def xlAutoOpen():
               None,
               None,
               None
-              )
-    print ('done')
-
+              )    
     return 1
 
 

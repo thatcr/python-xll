@@ -50,6 +50,7 @@ def build_extensions():
 def excel_application():
     Application = CreateObject('Excel.Application')
     Application.Visible = True
+    Application.DisplayAlerts = False
     yield Application
 
 
