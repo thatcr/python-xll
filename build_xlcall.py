@@ -54,7 +54,7 @@ int __cdecl Excel12(int xlfn, LPXLOPER12 operRes, int count, ...)
    FetchExcel12EntryPt();
    if (pexcel12 == NULL)
    {
-       printf("No Entry point!\n");
+       OutputDebugString("No Excel12EntryPt found!\n");
        mdRet = xlretFailed;
    }
    else
