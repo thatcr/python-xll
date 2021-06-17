@@ -2,4 +2,4 @@
 #     assert ExcelProcess.pid
 
 def test_application(excel_application):
-    assert Application.Version =='16.0'
+    assert excel_application.Version =='16.0'
