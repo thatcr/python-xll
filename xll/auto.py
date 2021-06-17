@@ -8,6 +8,7 @@ from xll.api import Excel
 import inspect
 
 from _python_xll import ffi, lib
+import _xlthunk
 
 from .convert import to_xloper
 
@@ -36,9 +37,8 @@ def xlfCaller():
     result = to_xloper(text)
     result.xltype |= lib.xlbitDLLFree
     
-    ptr = ffi.gc(result, destructor=lambda x : None)
-    print(ptr, id(ptr))
-
+    # how is result kept as a return value? 
+        
     return result
 
 
@@ -56,9 +56,9 @@ def xlAutoOpen():
 
     logger.info(f"Python XLL Loaded from {name}")   
     
-    lib.SetThunkProc(b"_0000", py_eval)            
+    _xlthunk.lib.SetThunkProc(b"_0000", py_eval)                
     xll.Excel(lib.xlfRegister,
-              name,
+              _xlthunk.__file__,
               "_0000",
               "QC",
               "PY.EVAL",
@@ -72,9 +72,9 @@ def xlAutoOpen():
               )
 
     # exports['_001'] = xlfCaller
-    lib.SetThunkProc(b"_0001", xlfCaller)        
+    _xlthunk.lib.SetThunkProc(b"_0001", xlfCaller)        
     xll.Excel(lib.xlfRegister,
-              name,
+              _xlthunk.__file__,
               "_0001",
               "Q",
               "xlfCaller",
@@ -91,19 +91,19 @@ def xlAutoOpen():
 
 @ffi.def_extern(error=0)
 def xlAutoClose():
-    print('xlAutoClose', flush=True)
+    logger.info('xlAutoClose', flush=True)
     return 1
 
 
 @ffi.def_extern(error=0)
 def xlAutoAdd():
-    print('xlAutoAdd', flush=True)
+    logger.info('xlAutoAdd', flush=True)
     return 1
 
 
 @ffi.def_extern(error=0)
 def xlAutoRemove():
-    print('xlAutoRemove', flush=True)
+    logger.info('xlAutoRemove', flush=True)
     return 1
 
 

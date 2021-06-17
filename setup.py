@@ -12,7 +12,9 @@ setup(
     ],
     platforms = ['Windows'],
     cffi_modules=[        
-        'build_python_xll.py:ffi'
+        'build_python_xll.py:ffi',
+        'build_xlcall.py:ffi',
+        'build_xlthunk.py:ffi'
     ],
     entry_points = {
         'python.xll' : [
