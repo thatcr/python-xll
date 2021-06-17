@@ -1,4 +1,7 @@
-from _xlcall import lib, ffi
+import logging
+from _python_xll import ffi, lib
+
+logger = logging.getLogger(__file__)
 
 def from_xloper(xloper):
     xltype = 0x0FFF & xloper.xltype
@@ -60,6 +63,7 @@ def to_xloper(value):
 
 def xlAutoFree12(xloper):
     # cleanup memory from strings
+    logger.debug(f"xlAutoFree12({xloper!r}")
     if xloper.xltype == lib.xltypeStr | lib.xlbitDLLFree:
         lib.free(xloper.val.str)
         xloper.xltype = 0
