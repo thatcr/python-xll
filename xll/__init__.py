@@ -1,2 +1,3 @@
-import logging
 from .api import Excel
+
+__all__ = ["Excel"]
