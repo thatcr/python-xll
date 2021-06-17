@@ -56,10 +56,10 @@ def xlAutoOpen():
 
     logger.info(f"Python XLL Loaded from {name}")   
     
-    lib.SetThunkProc(b"_000", py_eval)            
+    lib.SetThunkProc(b"_0000", py_eval)            
     xll.Excel(lib.xlfRegister,
               name,
-              "_000",
+              "_0000",
               "QC",
               "PY.EVAL",
               "source",
@@ -72,10 +72,10 @@ def xlAutoOpen():
               )
 
     # exports['_001'] = xlfCaller
-    lib.SetThunkProc(b"_001", xlfCaller)        
+    lib.SetThunkProc(b"_0001", xlfCaller)        
     xll.Excel(lib.xlfRegister,
               name,
-              "_001",
+              "_0001",
               "Q",
               "xlfCaller",
               "",

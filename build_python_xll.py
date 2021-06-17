@@ -18,6 +18,7 @@ ffi.embedding_api('''
     extern "Python" void xlAutoFree12(LPXLOPER12);
 ''')
 
+MAX_THUNKS = 0x7FFF
 
 ffi.set_source("_python_xll", r"""
 #undef NDEBUG
@@ -34,37 +35,7 @@ ffi.set_source("_python_xll", r"""
 #pragma comment(linker, "/export:xlAutoFree12=_xlAutoFree12@4")
 #endif
 
-
-// http://kylehalladay.com/blog/2020/11/13/Hooking-By-Example.html
-
-// thunks are defined as small exported arrays of bytes that trampoline
-// to a pointer injected in from the SetThunkProc call below
-#define E(n) extern CFFI_DLLEXPORT unsigned char  _ ## n ## [13] = \
-    { 0x49, 0xBA, \
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
-      0x41, 0xFF, 0xE2 \
-    };
-
 static HMODULE hModule = 0;
-
-extern void* SetThunkProc(const char* name, void* ptr)
-{
-    FARPROC proc = GetProcAddress(hModule, name);
-
-    if (proc == NULL)
-        return proc;
-    
-    void** addr = ((unsigned char*) proc) + 2;
-    *addr = ptr;
-
-    // change the page permissions o
-    DWORD oldProtect;
-    if (!VirtualProtect(proc, 13, PAGE_EXECUTE_READWRITE, &oldProtect))
-        return NULL;
-
-    return proc;          
-}
-
 
 void _set_python_home()
 {
@@ -95,7 +66,7 @@ BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD fdwReason, LPVOID lpvReason)
 {                        
     DisableThreadLibraryCalls(hInstDLL);
     
-    if (fdwReason == DLL_PROCESS_ATTACH) {                                  
+    if (fdwReason == DLL_PROCESS_ATTACH) {                                          
         hModule = hInstDLL;
 
         if (Py_IsInitialized())
@@ -106,14 +77,41 @@ BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD fdwReason, LPVOID lpvReason)
                 
     return TRUE;
 }
- 
-"""+ '\n'.join(f"E({d:03X})" for d in range(0, 0xFFF)),include_dirs=[build_xlcall.src_dir]) 
+
+extern void* SetThunkProc(const char* name, void* ptr)
+{        
+    FARPROC proc = GetProcAddress(hModule, name);
+    if (proc == NULL)
+        return NULL;
+    
+    // cast and assign the location of the jump pointer 
+    void** addr = ((unsigned char*) proc) + 2;
+    *addr = ptr;
+
+    // change the page permissions so that we can exceute the thunk
+    DWORD oldProtect;
+    if (!VirtualProtect(proc, 13, PAGE_EXECUTE_READWRITE, &oldProtect))
+        return NULL;
+
+    return proc;          
+}
+
+// http://kylehalladay.com/blog/2020/11/13/Hooking-By-Example.html
+
+// thunks are defined as small exported arrays of bytes that trampoline
+// to a pointer injected by from the SetThunkProc call below
+#define E(n) extern CFFI_DLLEXPORT unsigned char  _ ## n ## [13] = \
+    { 0x49, 0xBA, \
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
+      0x41, 0xFF, 0xE2 \
+    };
+
+"""+ '\n'.join(f"E({d:04X})" for d in range(0, MAX_THUNKS)),include_dirs=[build_xlcall.src_dir]) 
 
 ffi.embedding_init_code(r"""
 import logging
 import sys
-import sys
-import os.path
+
 
 from xll.output import OutputDebugStringWriter
 
@@ -125,11 +123,11 @@ logging.basicConfig(level=logging.DEBUG)
 logging.info(f"sys.prefix = {sys.path!r}")
 logging.info(f"sys.path = {sys.path!r}")
 
-
-# defer to the python module to 
+# defer to the python module to add the real registration bits
 import xll.auto
 """)
 
+
 if __name__ == '__main__':
-    ffi.compile(target=os.path.join(os.path.dirname(__file__), 'python.xll'), debug=False)
+    ffi.compile(target=os.path.join(os.path.dirname(__file__), 'python.xll'), verbose=True)
 
