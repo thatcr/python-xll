@@ -1,10 +1,13 @@
 from cffi import FFI
 
 ffi = FFI()
-ffi.cdef("""
+ffi.cdef(
+    """
    void OutputDebugStringW(const wchar_t*);
-""")
-kernel32 = ffi.dlopen('kernel32.dll')
+"""
+)
+kernel32 = ffi.dlopen("kernel32.dll")
+
 
 class OutputDebugStringWriter:
     def write(self, value):
@@ -12,4 +15,3 @@ class OutputDebugStringWriter:
 
     def flush(self):
         pass
-

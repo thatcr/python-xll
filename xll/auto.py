@@ -14,18 +14,21 @@ from .convert import to_xloper
 
 logger = logging.getLogger(__name__)
 
+
 def onerror(exception, exc_value, traceback):
     sys.excepthook(exception, exc_value, traceback)
 
-    xlerrValue = ffi.new('LPXLOPER12')
+    xlerrValue = ffi.new("LPXLOPER12")
     xlerrValue.xltype = lib.xltypeErr | lib.xlbitDLLFree
     xlerrValue.val.err = lib.xlerrValue
 
     return xlerrValue
 
+
 @ffi.def_extern(error=None)
 def xlAutoFree12(xloper):
-    logger.info(f'xlAutoFree12 {xloper!r} {id(xloper)}')
+    logger.info(f"xlAutoFree12 {xloper!r} {id(xloper)}")
+
 
 @ffi.callback("LPXLOPER12 (*)()")
 def xlfCaller():
@@ -36,9 +39,9 @@ def xlfCaller():
 
     result = to_xloper(text)
     result.xltype |= lib.xlbitDLLFree
-    
-    # how is result kept as a return value? 
-        
+
+    # how is result kept as a return value?
+
     return result
 
 
@@ -49,61 +52,62 @@ def py_eval(source):
     result.xltype |= lib.xlbitDLLFree
     return result
 
+
 @ffi.def_extern(error=0)
 def xlAutoOpen():
-    logger.info("xlAutoOpen!")    
-    name =  xll.Excel(lib.xlGetName)
+    logger.info("xlAutoOpen!")
+    name = xll.Excel(lib.xlGetName)
 
-    logger.info(f"Python XLL Loaded from {name}")   
-    
-    _xlthunk.lib.SetThunkProc(b"_0000", py_eval)                
-    xll.Excel(lib.xlfRegister,
-              _xlthunk.__file__,
-              "_0000",
-              "QC",
-              "PY.EVAL",
-              "source",
-              1,
-              "Python Builtins",
-              None,
-              None,
-              "Evaluate a python expression",
-              "Python expression to evaluate"
-              )
+    logger.info(f"Python XLL Loaded from {name}")
+
+    _xlthunk.lib.SetThunkProc(b"_0000", py_eval)
+    xll.Excel(
+        lib.xlfRegister,
+        _xlthunk.__file__,
+        "_0000",
+        "QC",
+        "PY.EVAL",
+        "source",
+        1,
+        "Python Builtins",
+        None,
+        None,
+        "Evaluate a python expression",
+        "Python expression to evaluate",
+    )
 
     # exports['_001'] = xlfCaller
-    _xlthunk.lib.SetThunkProc(b"_0001", xlfCaller)        
-    xll.Excel(lib.xlfRegister,
-              _xlthunk.__file__,
-              "_0001",
-              "Q",
-              "xlfCaller",
-              "",
-              1,
-              "Python Builtins",
-              None,
-              None,
-              None,
-              None
-              )    
+    _xlthunk.lib.SetThunkProc(b"_0001", xlfCaller)
+    xll.Excel(
+        lib.xlfRegister,
+        _xlthunk.__file__,
+        "_0001",
+        "Q",
+        "xlfCaller",
+        "",
+        1,
+        "Python Builtins",
+        None,
+        None,
+        None,
+        None,
+    )
     return 1
 
 
 @ffi.def_extern(error=0)
 def xlAutoClose():
-    logger.info('xlAutoClose', flush=True)
+    logger.info("xlAutoClose", flush=True)
     return 1
 
 
 @ffi.def_extern(error=0)
 def xlAutoAdd():
-    logger.info('xlAutoAdd', flush=True)
+    logger.info("xlAutoAdd", flush=True)
     return 1
 
 
 @ffi.def_extern(error=0)
 def xlAutoRemove():
-    logger.info('xlAutoRemove', flush=True)
+    logger.info("xlAutoRemove", flush=True)
     return 1
-
-

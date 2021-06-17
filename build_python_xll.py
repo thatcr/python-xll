@@ -6,17 +6,19 @@ ffi = FFI()
 
 ffi.include(build_xlcall.ffi)
 
-ffi.embedding_api('''          
+ffi.embedding_api(
+    """          
     extern "Python" int xlAutoOpen(void);
     extern "Python" int xlAutoClose(void);
     extern "Python" int xlAutoAdd(void);
     extern "Python" int xlAutoRemove(void);    
     extern "Python" void xlAutoFree12(LPXLOPER12);
-''')
+"""
+)
 
-MAX_THUNKS = 0x7FFF
-
-ffi.set_source("_python_xll", r"""
+ffi.set_source(
+    "_python_xll",
+    r"""
 #include <assert.h>
 #include <WINDOWS.H>
 #include <XLCALL.H>
@@ -69,9 +71,12 @@ BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD fdwReason, LPVOID lpvReason)
     return TRUE;
 }
 
-""", include_dirs=[build_xlcall.src_dir]) 
+""",
+    include_dirs=[build_xlcall.src_dir],
+)
 
-ffi.embedding_init_code(r"""
+ffi.embedding_init_code(
+    r"""
 import logging
 import sys
 
@@ -87,9 +92,11 @@ logging.info(f"sys.path = {sys.path!r}")
 
 # defer to the python module to add the real registration bits
 import xll.auto
-""")
+"""
+)
 
 
-if __name__ == '__main__':
-    ffi.compile(target=os.path.join(os.path.dirname(__file__), 'python.xll'), verbose=True)
-
+if __name__ == "__main__":
+    ffi.compile(
+        target=os.path.join(os.path.dirname(__file__), "python.xll"), verbose=True
+    )

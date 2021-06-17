@@ -5,25 +5,22 @@ from setuptools import setup
 # TODO how to build the python.xll?
 
 setup(
-    name='python-xll',
+    name="python-xll",
     version="0",
-    packages=[
-        'xll'
+    packages=["xll"],
+    platforms=["Windows"],
+    cffi_modules=[
+        "build_python_xll.py:ffi",
+        "build_xlcall.py:ffi",
+        "build_xlthunk.py:ffi",
     ],
-    platforms = ['Windows'],
-    cffi_modules=[        
-        'build_python_xll.py:ffi',
-        'build_xlcall.py:ffi',
-        'build_xlthunk.py:ffi'
-    ],
-    entry_points = {
-        'python.xll' : [
+    entry_points={
+        "python.xll": [
             "os.getenv=os:getenv",
             "os.cpu_count=os:cpu_count",
-            "os.name=os.name"
+            "os.name=os.name",
         ]
-    }
+    },
     setup_requires=["cffi>=1.0.0"],
-    install_requires=["cffi>=1.0.0"]
+    install_requires=["cffi>=1.0.0"],
 )
-

@@ -7,12 +7,12 @@ logger = logging.getLogger(__name__)
 
 
 def Excel(xlf, *args, convert=True):
-    res = ffi.new('LPXLOPER12')
+    res = ffi.new("LPXLOPER12")
 
     args = list(map(to_xloper, args))
 
     logger.debug(f"Excel12({int(xlf)}, {args!r})")
-    
+
     if args:
         ret = lib.Excel12(int(xlf), res, len(args), *args)
     else:
@@ -26,4 +26,3 @@ def Excel(xlf, *args, convert=True):
         return res
 
     return from_xloper(res)
-

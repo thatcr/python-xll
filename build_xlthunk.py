@@ -3,13 +3,17 @@ from cffi import FFI
 
 ffi = FFI()
 
-ffi.cdef('''
+ffi.cdef(
+    """
     void* SetThunkProc(const char* name, void* ptr);
-''')
+"""
+)
 
 MAX_THUNKS = 0x7FFF
 
-ffi.set_source("_xlthunk", r"""
+ffi.set_source(
+    "_xlthunk",
+    r"""
 #include <WINDOWS.H>
 
 static HMODULE hModule = NULL;
@@ -53,9 +57,12 @@ extern void* SetThunkProc(const char* name, void* ptr)
       0x41, 0xFF, 0xE2 \
     };
 
-"""+ '\n'.join(f"E({d:04X})" for d in range(0, MAX_THUNKS))) 
+"""
+    + "\n".join(f"E({d:04X})" for d in range(0, MAX_THUNKS)),
+)
 
 
-if __name__ == '__main__':
-    ffi.compile(target=os.path.join(os.path.dirname(__file__), '_xlthunk.pyd'), verbose=True)
-
+if __name__ == "__main__":
+    ffi.compile(
+        target=os.path.join(os.path.dirname(__file__), "_xlthunk.pyd"), verbose=True
+    )
