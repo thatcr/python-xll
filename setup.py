@@ -11,8 +11,8 @@ setup(
         'xll'
     ],
     platforms = ['Windows'],
-    cffi_modules=[
-        'build_xlcall.py:ffi',
+    cffi_modules=[        
+        'build_python_xll.py:ffi'
     ],
     entry_points = {
         'python.xll' : [
@@ -21,5 +21,7 @@ setup(
             "os.name=os.name"
         ]
     }
+    setup_requires=["cffi>=1.0.0"],
+    install_requires=["cffi>=1.0.0"]
 )
 
