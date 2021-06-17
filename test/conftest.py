@@ -1,6 +1,8 @@
+import sys
 import pytest
 import shutil
 import os
+import subprocess
 
 from comtypes.client import CreateObject
 #
@@ -38,11 +40,21 @@ EXCEL = r"C:\Program Files (x86)\Microsoft Office\root\Office16\EXCEL.EXE"
 #     process.wait()
 
 
+@pytest.fixture(scope='session', autouse=True)
+def build_extensions():
+    subprocess.call("taskkill /f /im excel.exe", shell=True)
+    subprocess.check_call([sys.executable, "build_xlcall.py"])
+    subprocess.check_call([sys.executable, "build_python_xll.py"])
+
 @pytest.fixture(scope='session')
 def excel_application():
     Application = CreateObject('Excel.Application')
+    Application.Visible = True
     yield Application
 
+
+# TODO make a third fixture of 'loaded extensions' which we really use.
+#      need to get unique excel pid stuff working again.
 
 # @pytest.fixture(scope='session')
 # def Application(ExcelProcess):
