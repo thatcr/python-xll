@@ -1,11 +1,8 @@
 import xll
 import sys
-import os.path
 import logging
 
 from xll.api import Excel
-
-import inspect
 
 from _python_xll import ffi, lib
 import _xlthunk
@@ -15,22 +12,23 @@ from .convert import to_xloper
 logger = logging.getLogger(__name__)
 
 
+# allocate xlopers to return as error values
+
+xlerrNull = ffi.new("LPXLOPER12", {"xltype": lib.xltypeErr})
+xlerrNull.val.err = lib.xlerrNull
+
+xlerrValue = ffi.new("LPXLOPER12", {"xltype": lib.xltypeErr})
+xlerrValue.val.err = lib.xlerrValue
+
+
 def onerror(exception, exc_value, traceback):
     sys.excepthook(exception, exc_value, traceback)
 
-    xlerrValue = ffi.new("LPXLOPER12")
-    xlerrValue.xltype = lib.xltypeErr | lib.xlbitDLLFree
-    xlerrValue.val.err = lib.xlerrValue
-
+    logger.error("Function call failed!", exc_info=(exception, exc_value, traceback))
     return xlerrValue
 
 
-@ffi.def_extern(error=None)
-def xlAutoFree12(xloper):
-    logger.info(f"xlAutoFree12 {xloper!r} {id(xloper)}")
-
-
-@ffi.callback("LPXLOPER12 (*)()")
+@ffi.callback("LPXLOPER12 (*)()", onerror=onerror)
 def xlfCaller():
     logger.info("Called xlfCaller")
     caller = Excel(lib.xlfCaller, convert=False)
@@ -45,7 +43,7 @@ def xlfCaller():
     return result
 
 
-@ffi.callback("LPXLOPER12 (*)(const char*)")
+@ffi.callback("LPXLOPER12 (*)(const char*)", onerror=onerror)
 def py_eval(source):
     logging.info(f"Called py.eval with {source}")
     result = to_xloper(eval(ffi.string(source), locals(), {}))
@@ -111,3 +109,30 @@ def xlAutoAdd():
 def xlAutoRemove():
     logger.info("xlAutoRemove", flush=True)
     return 1
+
+
+@ffi.def_extern()
+def xlAutoFree12(xloper):
+    # cleanup memory from strings
+    logger.debug(f"xlAutoFree12({xloper!r}")
+    if xloper.xltype == lib.xltypeStr | lib.xlbitDLLFree:
+        lib.free(xloper.val.str)
+        xloper.xltype = 0
+    return None
+
+
+@ffi.def_extern(error=xlerrNull)
+def xlAutoRegister12(xloper):
+    # cleanup memory from strings
+    logger.debug(f"xlAutoFree12({xloper!r}")
+    raise NotImplementedError
+
+
+@ffi.def_extern(error=xlerrNull)
+def xlAddInManagerInfo12(xloper):
+    # cleanup memory from strings
+    logger.debug(f"xlAddInManagerInfo12({xloper!r}")
+
+    result = to_xloper(sys.version)
+    result.xltype |= lib.xlbitDLLFree
+    return result

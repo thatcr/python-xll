@@ -7,12 +7,14 @@ ffi = FFI()
 ffi.include(build_xlcall.ffi)
 
 ffi.embedding_api(
-    """          
+    """
     extern "Python" int xlAutoOpen(void);
     extern "Python" int xlAutoClose(void);
     extern "Python" int xlAutoAdd(void);
-    extern "Python" int xlAutoRemove(void);    
+    extern "Python" int xlAutoRemove(void);
     extern "Python" void xlAutoFree12(LPXLOPER12);
+    extern "Python" LPXLOPER12 xlAutoRegister12();
+    extern "Python" LPXLOPER12 xlAddInManagerInfo12();
 """
 )
 
@@ -34,10 +36,10 @@ ffi.set_source(
 
 void _set_python_home()
 {
-    // NOTE if we are inside a venv we see the pythonXX.dll inside 
+    // NOTE if we are inside a venv we see the pythonXX.dll inside
     // the Scripts/ subfolder, and need to setup the right home
-    // from the pyvenv.cfg first? How does the python.exe do that?  
-    
+    // from the pyvenv.cfg first? How does the python.exe do that?
+
     CHAR   DllName[MAX_PATH];
 
     sprintf(DllName, "python%d%d.dll", PY_MAJOR_VERSION, PY_MINOR_VERSION);

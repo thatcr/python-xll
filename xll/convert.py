@@ -62,11 +62,3 @@ def to_xloper(value):
         return result
 
     raise TypeError(f"cannot convert {type(value)!r} to XLOPER12")
-
-
-def xlAutoFree12(xloper):
-    # cleanup memory from strings
-    logger.debug(f"xlAutoFree12({xloper!r}")
-    if xloper.xltype == lib.xltypeStr | lib.xlbitDLLFree:
-        lib.free(xloper.val.str)
-        xloper.xltype = 0

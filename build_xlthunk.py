@@ -34,7 +34,7 @@ extern void* SetThunkProc(const char* name, void* ptr)
     FARPROC proc = GetProcAddress(hModule, name);
     if (proc == NULL)
         return NULL;
-    
+
     // cast and assign the location of the jump pointer 
     void** addr = ((unsigned char*) proc) + 2;
     *addr = ptr;

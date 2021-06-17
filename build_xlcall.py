@@ -8,7 +8,7 @@ cdef = open(os.path.join(src_dir, "XLCALLAPI.H")).read()
 ffi = FFI()
 ffi.cdef(
     cdef
-    + f"""
+    + """
 extern int Excel12(int xlfn, LPXLOPER12 operRes, int count, ... );
 """
 )
@@ -22,7 +22,12 @@ ffi.set_source(
 #define cxloper12Max 255
 #define EXCEL12ENTRYPT "MdCallBack12"
 
-typedef int (PASCAL *EXCEL12PROC) (int xlfn, int coper, LPXLOPER12 *rgpxloper12, LPXLOPER12 xloper12Res);
+typedef int (PASCAL *EXCEL12PROC) (
+    int xlfn, 
+    int coper, 
+    LPXLOPER12 *rgpxloper12, 
+    LPXLOPER12 xloper12Res
+);
 HMODULE hmodule;
 EXCEL12PROC pexcel12;
 
