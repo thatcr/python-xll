@@ -1,19 +1,25 @@
+import logging
+
 from _xlcall import ffi, lib
 from .convert import to_xloper, from_xloper
 
-print(__file__)
+logger = logging.getLogger(__name__)
+
 
 def Excel(xlf, *args, convert=True):
     res = ffi.new('LPXLOPER12')
 
     args = list(map(to_xloper, args))
 
+    logger.debug(f"Excel12({int(xlf)}, {args!r})")
+    
     if args:
         ret = lib.Excel12(int(xlf), res, len(args), *args)
     else:
         ret = lib.Excel12(int(xlf), res, len(args))
 
     if ret:
+        logger.debug(f"\tCall Failed {ret!r}")
         raise RuntimeError(str(ret))
 
     if not convert:

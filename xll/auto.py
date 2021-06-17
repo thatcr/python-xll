@@ -1,5 +1,7 @@
 import xll
 import sys
+import logging
+
 from xll.api import Excel
 
 import inspect
@@ -9,6 +11,8 @@ from _python_xll import ffi, lib
 
 from .convert import to_xloper
 from .export import ExportDirectory
+
+logger = logging.getLogger(__name__)
 
 def onerror(exception, exc_value, traceback):
     sys.excepthook(exception, exc_value, traceback)
@@ -25,6 +29,7 @@ def xlAutoFree12(xloper):
 
 @ffi.callback("LPXLOPER12 (*)()")
 def xlfCaller():
+    logger.info("Called xlfCaller")
     caller = Excel(lib.xlfCaller, convert=False)
 
     text = Excel(lib.xlSheetNm, caller)
@@ -41,17 +46,19 @@ def xlfCaller():
 
 @ffi.callback("LPXLOPER12 (*)(const char*)")
 def py_eval(source):
+    logging.info(f"Called py.eval with {source}")
     result = to_xloper(eval(ffi.string(source), locals(), {}))
     result.xltype |= lib.xlbitDLLFree
     return result
 
 @ffi.def_extern(error=0)
 def xlAutoOpen():
-    print('xlAutoOpen', flush=True)
-    
+    logger.info("xlAutoOpen!")    
     name =  xll.Excel(lib.xlGetName)
 
-    exports = ExportDirectory(lib.pRVABase, lib.pExportDirectory)
+    logger.info(f"Python XLL Loaded from {name}")
+
+    exports = ExportDirectory(lib.pExportDirectory)
 
     # # xll.Excel(lib.xlcAlert, "Hello World")
     exports['_000'] = py_eval
