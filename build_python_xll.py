@@ -34,12 +34,11 @@ ffi.set_source(
 #pragma comment(linker, "/export:xlAutoFree12=_xlAutoFree12@4")
 #endif
 
-
-struct PyXLOPER12 
+typedef struct pyxloper12 
 { 
     struct xloper12 xlo; 
     void* ptr; 
-};
+} PYXLOPER12, *LPPYXLOPER12;
 
 void _set_python_home()
 {

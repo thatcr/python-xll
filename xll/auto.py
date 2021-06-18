@@ -74,7 +74,7 @@ def py_eval(source):
         logger.info("freeing xloper!")
         lib.free(x.xlo.val.str)
 
-    result = ffi.new("struct PyXLOPER12*")
+    result = ffi.new("LPPYXLOPER12")
     result.xlo.xltype = lib.xltypeStr | lib.xlbitDLLFree  # 0x4002
 
     result.xlo.val.str = lib.malloc((len(value) + 1) * 2)
