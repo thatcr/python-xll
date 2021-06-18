@@ -10,6 +10,13 @@ ffi.cdef(
     cdef
     + """
 extern int Excel12(int xlfn, LPXLOPER12 operRes, int count, ... );
+// wrapped xloper which includes a reference to tself
+
+struct PyXLOPER12 
+{ 
+    struct xloper12 xlo; 
+    void* ptr; 
+};
 """
 )
 
@@ -18,6 +25,11 @@ ffi.set_source(
     r"""
 #include <WINDOWS.H>
 #include <XLCALL.H>
+
+struct PyXLOPER12 { 
+    struct xloper12 xlo; 
+    void* ptr; 
+};
 
 #define cxloper12Max 255
 #define EXCEL12ENTRYPT "MdCallBack12"

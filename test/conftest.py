@@ -43,7 +43,6 @@ EXCEL = r"C:\Program Files (x86)\Microsoft Office\root\Office16\EXCEL.EXE"
 
 @pytest.fixture(scope="session", autouse=True)
 def build_extensions():
-    subprocess.check_call([sys.executable, "build_xlcall.py"])
     subprocess.check_call([sys.executable, "build_python_xll.py"])
 
 
@@ -52,6 +51,10 @@ def excel_application():
     Application = CreateObject("Excel.Application")
     Application.Visible = True
     Application.DisplayAlerts = False
+
+    filename = os.path.join(os.path.dirname(os.path.dirname(__file__)), "python.xll")
+    assert Application.RegisterXll(filename)
+
     yield Application
 
 

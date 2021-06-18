@@ -11,8 +11,6 @@ def Excel(xlf, *args, convert=True):
 
     args = list(map(to_xloper, args))
 
-    logger.debug(f"Excel12({int(xlf)}, {args!r})")
-
     if args:
         ret = lib.Excel12(int(xlf), res, len(args), *args)
     else:

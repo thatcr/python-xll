@@ -6,15 +6,15 @@ ffi = FFI()
 
 ffi.include(build_xlcall.ffi)
 
+# NOTE xlAutoFree12 has to exist in the same module as the function
 ffi.embedding_api(
     """
     extern "Python" int xlAutoOpen(void);
     extern "Python" int xlAutoClose(void);
     extern "Python" int xlAutoAdd(void);
-    extern "Python" int xlAutoRemove(void);
-    extern "Python" void xlAutoFree12(LPXLOPER12);
+    extern "Python" int xlAutoRemove(void);    
     extern "Python" LPXLOPER12 xlAutoRegister12();
-    extern "Python" LPXLOPER12 xlAddInManagerInfo12();
+    extern "Python" LPXLOPER12 xlAddInManagerInfo12();    
 """
 )
 
@@ -33,6 +33,13 @@ ffi.set_source(
 #pragma comment(linker, "/export:xlAutoRemove=_xlAutoRemove@0")
 #pragma comment(linker, "/export:xlAutoFree12=_xlAutoFree12@4")
 #endif
+
+
+struct PyXLOPER12 
+{ 
+    struct xloper12 xlo; 
+    void* ptr; 
+};
 
 void _set_python_home()
 {
@@ -80,17 +87,21 @@ BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD fdwReason, LPVOID lpvReason)
 ffi.embedding_init_code(
     r"""
 import logging
+import os.path
 import sys
 
+# patch the exceutable path, or lots of modules get confused
+sys.executable = os.path.join(sys.prefix, "python.exe")
+
 from xll.output import OutputDebugStringWriter
+
+import _python_xll
 
 # send all output to the debugging console
 sys.stderr = sys.stdout = OutputDebugStringWriter()
 
 # log to the new stdout/stderr channels
 logging.basicConfig(level=logging.DEBUG)
-logging.info(f"sys.prefix = {sys.path!r}")
-logging.info(f"sys.path = {sys.path!r}")
 
 # defer to the python module to add the real registration bits
 import xll.auto

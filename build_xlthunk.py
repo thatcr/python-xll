@@ -3,9 +3,11 @@ from cffi import FFI
 
 ffi = FFI()
 
+src_dir = os.path.join(os.path.dirname(__file__), "src")
+
 ffi.cdef(
     """
-    void* SetThunkProc(const char* name, void* ptr);
+    void* SetThunkProc(const char* name, void* ptr);        
 """
 )
 
@@ -15,8 +17,24 @@ ffi.set_source(
     "_xlthunk",
     r"""
 #include <WINDOWS.H>
+#include <XLCALL.H>
 
 static HMODULE hModule = NULL;
+
+void __declspec(dllexport) xlAutoFree12(LPXLOPER12 lpXloper)
+{
+    OutputDebugString("xlAutoFree12!\n\n");
+
+    PyObject** pobj = (void*) (lpXloper + 1);
+
+    CHAR sz[1024];
+    sprintf(sz, "XlAutoFree12 of XLOPER @ %I64X has pyobject @ %I64X with refcount = %I64d\n\n", (unsigned __int64) lpXloper, (unsigned __int64) *pobj, (*pobj)->ob_refcnt);
+    OutputDebugString(sz);
+
+    PyGILState_STATE state = PyGILState_Ensure();
+    Py_DECREF(*pobj);
+    PyGILState_Release(state);
+}
 
 BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD fdwReason, LPVOID lpvReason)
 {                        
@@ -36,7 +54,7 @@ extern void* SetThunkProc(const char* name, void* ptr)
         return NULL;
 
     // cast and assign the location of the jump pointer 
-    void** addr = ((unsigned char*) proc) + 2;
+    void** addr = (void**) ((unsigned char*) proc + 2);
     *addr = ptr;
 
     // change the page permissions so that we can exceute the thunk
@@ -57,8 +75,11 @@ extern void* SetThunkProc(const char* name, void* ptr)
       0x41, 0xFF, 0xE2 \
     };
 
+    
+
 """
     + "\n".join(f"E({d:04X})" for d in range(0, MAX_THUNKS)),
+    include_dirs=[src_dir],
 )
 
 
