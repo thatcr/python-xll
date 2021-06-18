@@ -1,5 +1,5 @@
 import logging
-from _python_xll import ffi, lib
+from _xlcall import ffi, lib
 
 logger = logging.getLogger(__file__)
 
@@ -25,40 +25,61 @@ def to_xloper(value):
     if isinstance(value, ffi.CData):
         return value
 
+    # initialize the result, and
+    result = ffi.new("LPPYXLOPER12")
+    result.ptr = ffi.cast("void*", 0)
+
+    xlo = result.xlo
+
     if value is None:
-        result = ffi.new("LPXLOPER12")
-        result.xltype = lib.xltypeBool
+        xlo.xltype = lib.xltypeBool
         return result
+    elif type(value) is bool:
+        xlo.xltype = lib.xltypeBool
+        xlo.val.xbool = 1 if value else 0
+    elif type(value) is int:
+        xlo.xltype = lib.xltypeInt
+        xlo.val.w = value
+    elif type(value) is float:
+        xlo.xltype = lib.xltypeNum
+        xlo.val.num = value
+    elif type(value) is str:
+        xlo.xltype = lib.xltypeStr
 
-    if type(value) is bool:
-        result = ffi.new("LPXLOPER12")
-        result.xltype = lib.xltypeBool
-        result.val.xbool = 1 if value else 0
-        return result
+        xlo.val.str = lib.malloc((len(value) + 1) * 2)
+        xlo.val.str[0] = chr(len(value))
+        xlo.val.str[1 : len(value) + 1] = value
 
-    if type(value) is int:
-        result = ffi.new("LPXLOPER12")
-        result.xltype = lib.xltypeInt
-        result.val.w = value
-        return result
+        def _free(x):
+            logger.debug(
+                f"freeing xltypeStr {ffi.string(x.xlo.val.str[1:1+ord(x.xlo.val.str[0])])}"
+            )
+            lib.free(x.xlo.val.str)
 
-    if type(value) is float:
-        result = ffi.new("LPXLOPER12")
-        result.xltype = lib.xltypeNum
-        result.val.num = value
-        return result
+        result = ffi.gc(result, _free)
 
-    if type(value) is str:
-        result = ffi.new("LPXLOPER12")
-        result.xltype = lib.xltypeStr | lib.xlbitDLLFree
+    else:
+        raise TypeError(f"cannot convert {type(value)!r} to XLOPER12")
 
-        # TODO expose an incref here? nope. can't go back to the CDATA
-        #      use malloc/free? or store a map of cdata -> xloper and back.
-        #
-        result.val.str = lib.malloc((len(value) + 1) * 2)
-        result.val.str[0] = chr(len(value))
-        result.val.str[1 : len(value) + 1] = value
+    return result
 
-        return result
 
-    raise TypeError(f"cannot convert {type(value)!r} to XLOPER12")
+def to_xloper_result(value):
+    # do the normal conversion first
+    result = to_xloper(value)
+
+    logger.info("converting to result")
+
+    # include the object pointer in the data after the XLOPER
+    result.ptr = ffi.cast("void*", id(result))
+
+    # signal to excel that it needs to call xl
+    result.xlo.xltype |= lib.xlbitDLLFree
+
+    # hack to get the refcount from the object and increment it for excel's reference
+    prefcnt = ffi.cast("unsigned int*", id(result))
+    prefcnt[0] = prefcnt[0] + 1
+
+    logger.info("done converting to result")
+
+    return result

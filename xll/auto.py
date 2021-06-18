@@ -8,8 +8,7 @@ from _python_xll import ffi as addin
 import _xlthunk
 
 from _xlcall import lib, ffi
-
-from .convert import to_xloper
+from .convert import to_xloper, to_xloper_result
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +47,6 @@ def xlfCaller():
     result = to_xloper(text)
     result.xltype |= lib.xlbitDLLFree
 
-    # use the sneaky incref hack here to fix the pyobject?
-
-    # how is result kept as a return value?
-
     return result
 
 
@@ -63,35 +58,12 @@ _cache = []
 
 @addin.callback("LPXLOPER12 (*)(const char*)", onerror=onerror)
 def py_eval(source):
-    logger.info(f"Called py.eval")
+    logger.info(f"Called py.eval with {ffi.string(source)!r}")
 
-    value = sys.version
+    # execute the python and get the result
+    value = eval(ffi.string(source), locals(), {"sys": sys})
 
-    # result = to_xloper(eval(ffi.string(source), locals(), {}))
-    # using  crashes!!! hardocding the hex works.
-
-    def _free(x):
-        logger.info("freeing xloper!")
-        lib.free(x.xlo.val.str)
-
-    result = ffi.new("LPPYXLOPER12")
-    result.xlo.xltype = lib.xltypeStr | lib.xlbitDLLFree  # 0x4002
-
-    result.xlo.val.str = lib.malloc((len(value) + 1) * 2)
-    result.xlo.val.str[0] = chr(len(value))
-    result.xlo.val.str[1 : len(value) + 1] = value
-    result = ffi.gc(result, _free)
-
-    result.ptr = ffi.cast("void*", id(result))
-    logger.info(f"PyXLOPER12 @ {result.ptr}, { hex(id(result))}")
-
-    pref = ffi.cast("unsigned int*", id(result))
-
-    pref[0] = pref[0] + 1
-
-    logger.info(f"pref = {pref[0]}, sys.getrefcount = {sys.getrefcount(result)}")
-
-    # _cache.append(result)
+    result = to_xloper_result(value)
 
     return ffi.addressof(result.xlo)
 
@@ -168,9 +140,8 @@ def xlAutoRegister12(xloper):
 
 @addin.def_extern(error=xlerrNull)
 def xlAddInManagerInfo12(xloper):
-    # cleanup memory from strings
+    # this will invoke xlAutoFree on this addin, not the thunk...
     logger.debug(f"xlAddInManagerInfo12({xloper!r}")
 
-    result = to_xloper(sys.version)
-    result.xltype |= lib.xlbitDLLFree
+    result = to_xloper_result(sys.version)
     return result
