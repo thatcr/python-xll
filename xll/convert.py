@@ -25,61 +25,63 @@ def to_xloper(value):
     if isinstance(value, ffi.CData):
         return value
 
-    # initialize the result, and
-    result = ffi.new("LPPYXLOPER12")
-    result.ptr = ffi.cast("void*", 0)
+    # how to create  LPXLOPER12 owning an array? Can we even do that...
+    # can we just hack GC here.
 
-    xlo = result.xlo
+    xlo = ffi.new("XLOPER12[2]")
+
+    xlo[1].xltype = 0
 
     if value is None:
-        xlo.xltype = lib.xltypeBool
-        return result
+        xlo[0].xltype = lib.xltypeBool
     elif type(value) is bool:
-        xlo.xltype = lib.xltypeBool
-        xlo.val.xbool = 1 if value else 0
+        xlo[0].xltype = lib.xltypeBool
+        xlo[0].val.xbool = 1 if value else 0
     elif type(value) is int:
-        xlo.xltype = lib.xltypeInt
-        xlo.val.w = value
+        xlo[0].xltype = lib.xltypeInt
+        xlo[0].val.w = value
     elif type(value) is float:
-        xlo.xltype = lib.xltypeNum
-        xlo.val.num = value
+        xlo[0].xltype = lib.xltypeNum
+        xlo[0].val.num = value
     elif type(value) is str:
-        xlo.xltype = lib.xltypeStr
+        xlo[0].xltype = lib.xltypeStr
 
-        xlo.val.str = lib.malloc((len(value) + 1) * 2)
-        xlo.val.str[0] = chr(len(value))
-        xlo.val.str[1 : len(value) + 1] = value
+        xlo[0].val.str = lib.malloc((len(value) + 1) * 2)
+        xlo[0].val.str[0] = chr(len(value))
+        xlo[0].val.str[1 : len(value) + 1] = value
 
-        def _free(x):
+        def _free(xlo):
             logger.debug(
-                f"freeing xltypeStr {ffi.string(x.xlo.val.str[1:1+ord(x.xlo.val.str[0])])}"
+                f"freeing xltypeStr {ffi.string(xlo[0].val.str[1:1+ord(xlo[0].val.str[0])])}"
             )
-            lib.free(x.xlo.val.str)
+            lib.free(xlo[0].val.str)
+            xlo[0].xltype = 0
 
-        result = ffi.gc(result, _free)
+        xlo = ffi.gc(xlo, _free)
 
     else:
         raise TypeError(f"cannot convert {type(value)!r} to XLOPER12")
 
-    return result
+    return xlo
 
 
 def to_xloper_result(value):
     # do the normal conversion first
-    result = to_xloper(value)
+    xlo = to_xloper(value)
 
     logger.info("converting to result")
 
-    # include the object pointer in the data after the XLOPER
-    result.ptr = ffi.cast("void*", id(result))
-
-    # signal to excel that it needs to call xl
-    result.xlo.xltype |= lib.xlbitDLLFree
+    # signal to excel that it needs to call xlAutoFree12, and setup the pointer
+    # in the extra xloper
+    xlo[0].xltype |= lib.xlbitDLLFree
+    xlo[1].xltype = 0xFFFF
+    xlo[1].val.str = ffi.cast("wchar_t*", id(xlo))
 
     # hack to get the refcount from the object and increment it for excel's reference
-    prefcnt = ffi.cast("unsigned int*", id(result))
+    prefcnt = ffi.cast("unsigned int*", id(xlo))
     prefcnt[0] = prefcnt[0] + 1
 
     logger.info("done converting to result")
 
-    return result
+    # convert to pointer to return to excel
+    return ffi.cast("LPXLOPER12", xlo)

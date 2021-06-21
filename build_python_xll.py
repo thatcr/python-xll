@@ -33,13 +33,6 @@ ffi.set_source(
 #pragma comment(linker, "/export:xlAutoRemove=_xlAutoRemove@0")
 #pragma comment(linker, "/export:xlAutoFree12=_xlAutoFree12@4")
 #endif
-
-typedef struct pyxloper12 
-{ 
-    struct xloper12 xlo; 
-    void* ptr; 
-} PYXLOPER12, *LPPYXLOPER12;
-
 void _set_python_home()
 {
     // NOTE if we are inside a venv we see the pythonXX.dll inside
@@ -96,9 +89,9 @@ from xll.output import OutputDebugStringWriter
 
 import _python_xll
 
+
 # send all output to the debugging console
 sys.stderr = sys.stdout = OutputDebugStringWriter()
-
 # log to the new stdout/stderr channels
 logging.basicConfig(level=logging.DEBUG)
 

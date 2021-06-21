@@ -23,18 +23,19 @@ static HMODULE hModule = NULL;
 
 void __declspec(dllexport) xlAutoFree12(LPXLOPER12 lpXloper)
 {
-    OutputDebugString("xlAutoFree12!\n\n");
+    // a retruned xloper is two xlopers, with the python object
+    // reference hidden in the second one, so decref it.
+    assert(pXloper->xltype & xlbitDLLFree);
 
-    PyObject** pobj = (void*) (lpXloper + 1);
-
-    CHAR sz[1024];
-    sprintf(sz, "XlAutoFree12 of XLOPER @ %I64X has pyobject @ %I64X with refcount = %I64d\n\n", (unsigned __int64) lpXloper, (unsigned __int64) *pobj, (*pobj)->ob_refcnt);
-    OutputDebugString(sz);
+    LPXLOPER12 pXloperObj = lpXloper + 1;
+    assert(pXloperObj->xltype == 0xFFFF);
+    PyObject *pPyObject = (PyObject *)pXloperObj->val.str;
 
     PyGILState_STATE state = PyGILState_Ensure();
-    Py_DECREF(*pobj);
+    Py_DECREF(pPyObject);
     PyGILState_Release(state);
 }
+
 
 BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD fdwReason, LPVOID lpvReason)
 {                        

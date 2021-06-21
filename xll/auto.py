@@ -44,10 +44,7 @@ def xlfCaller():
 
     logger.info(f"{ffi.string(text.val.str)}")
 
-    result = to_xloper(text)
-    result.xltype |= lib.xlbitDLLFree
-
-    return result
+    return to_xloper_result(text)
 
 
 _cache = []
@@ -63,9 +60,7 @@ def py_eval(source):
     # execute the python and get the result
     value = eval(ffi.string(source), locals(), {"sys": sys})
 
-    result = to_xloper_result(value)
-
-    return ffi.addressof(result.xlo)
+    return to_xloper_result(value)
 
 
 @addin.def_extern(error=0)
