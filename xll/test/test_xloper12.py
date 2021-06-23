@@ -4,6 +4,15 @@ import pytest
 from ..xloper12 import XLOPER12
 
 
+def test_null(value=None):
+    assert XLOPER12.from_python(value).to_python() is None
+    assert XLOPER12.from_none(value).to_python() is None
+
+
+def test_ellipsis(value=Ellipsis):
+    assert XLOPER12().to_python() is Ellipsis
+
+
 @pytest.mark.parametrize("value", [True, False])
 def test_bool(value):
     assert XLOPER12.from_python(value).to_python() == value
@@ -48,3 +57,8 @@ def test_int(value):
 
     with pytest.raises(TypeError):
         int(XLOPER12.from_none())
+
+
+def test_unknown_type(value=Ellipsis):
+    with pytest.raises(TypeError):
+        XLOPER12.from_python(value)

@@ -11,8 +11,8 @@ _to_python = {
     lib.xltypeNum: float,
     lib.xltypeStr: str,
     lib.xltypeBool: bool,
-    lib.xltypeNil: lambda _: Ellipsis,
-    lib.xltypeMissing: lambda _: None,
+    lib.xltypeNil: lambda _: None,
+    lib.xltypeMissing: lambda _: Ellipsis,
     lib.xltypeInt: int,
 }
 
