@@ -1,13 +1,15 @@
 import os.path
+import build_xlcall
 from cffi import FFI
 
 ffi = FFI()
-
+ffi.include(build_xlcall.ffi)
 src_dir = os.path.join(os.path.dirname(__file__), "src")
 
 ffi.cdef(
     """
     void* SetThunkProc(const char* name, void* ptr);        
+    void xlAutoFree12(LPXLOPER12 lpXloper);
 """
 )
 
@@ -21,7 +23,7 @@ ffi.set_source(
 
 static HMODULE hModule = NULL;
 
-void __declspec(dllexport) xlAutoFree12(LPXLOPER12 lpXloper)
+extern void __declspec(dllexport) xlAutoFree12(LPXLOPER12 lpXloper)
 {
     // a retruned xloper is two xlopers, with the python object
     // reference hidden in the second one, so decref it.
@@ -40,6 +42,7 @@ void __declspec(dllexport) xlAutoFree12(LPXLOPER12 lpXloper)
 BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD fdwReason, LPVOID lpvReason)
 {                        
     DisableThreadLibraryCalls(hInstDLL);
+
     
     if (fdwReason == DLL_PROCESS_ATTACH) {                                          
         hModule = hInstDLL;                           

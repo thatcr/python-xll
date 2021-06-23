@@ -3,6 +3,9 @@ import pytest
 
 from ..xloper12 import XLOPER12
 
+from _xlcall import lib
+from _xlthunk.lib import xlAutoFree12
+
 
 def test_null(value=None):
     assert XLOPER12.from_python(value).to_python() is None
@@ -62,3 +65,15 @@ def test_int(value):
 def test_unknown_type(value=Ellipsis):
     with pytest.raises(TypeError):
         XLOPER12.from_python(value)
+
+
+def test_result():
+    xloper = XLOPER12()
+
+    refcount = sys.getrefcount(xloper)
+
+    result = xloper.to_result()
+    assert sys.getrefcount(xloper) == refcount + 1
+    xlAutoFree12(result)
+    assert sys.getrefcount(xloper) == refcount
+    del xloper

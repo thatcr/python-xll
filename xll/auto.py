@@ -43,7 +43,7 @@ def xlfCaller():
     text = Excel(lib.xlSheetNm, caller)
     logger.info(f"{text!r}")
 
-    return XLOPER12(str(text)).to_result()
+    return XLOPER12.from_string(str(text)).to_result()
 
 
 _cache = []
@@ -59,7 +59,7 @@ def py_eval(source):
     # execute the python and get the result
     value = eval(ffi.string(source), locals(), {"sys": sys})
 
-    return XLOPER12(value).to_result()
+    return XLOPER12.from_python(value).to_result()
 
 
 @addin.def_extern(error=0)
