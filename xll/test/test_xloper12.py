@@ -3,7 +3,7 @@ import pytest
 
 from ..xloper12 import XLOPER12
 
-from _xlcall import lib
+from _xlcall import lib, ffi
 from _xlthunk.lib import xlAutoFree12
 
 
@@ -72,13 +72,27 @@ def test_result():
 
     refcount = sys.getrefcount(xloper)
 
-    result = xloper.to_result()
+    result = xloper.as_result()
     assert sys.getrefcount(xloper) == refcount + 1
     xlAutoFree12(result)
     assert sys.getrefcount(xloper) == refcount
     del xloper
 
+    with pytest.raises(RuntimeError):
+        xloper = XLOPER12()
+        xloper.as_result()
+        xloper.as_result()
+
 
 def test_wrong_pointer_type():
     with pytest.raises(TypeError):
         XLOPER12(ptr="The Wrong Type!")
+
+
+def test_from_excel():
+    xloper = ffi.new("LPXLOPER12")
+
+    xloper.xltype = lib.xltypeInt
+    xloper.val.w = 1
+
+    assert XLOPER12.from_excel(xloper).to_python() == 1

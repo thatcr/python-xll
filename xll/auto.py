@@ -36,14 +36,14 @@ def onerror(exception, exc_value, traceback):
 
 @ffi.callback("LPXLOPER12 (*)()", onerror=onerror)
 def xlfCaller():
-    logger.info("Called xlfCaller")
+    logger.info(f"xlfCaller()")
 
     caller = Excel(lib.xlfCaller)
 
     text = Excel(lib.xlSheetNm, caller)
     logger.info(f"{text!r}")
 
-    return XLOPER12.from_string(str(text)).to_result()
+    return XLOPER12.from_string(str(text)).as_result()
 
 
 _cache = []
@@ -54,20 +54,27 @@ _cache = []
 
 @addin.callback("LPXLOPER12 (*)(const char*)", onerror=onerror)
 def py_eval(source):
-    logger.info(f"Called py.eval with {ffi.string(source)!r}")
+    logger.info(f"py_eval({ffi.string(source)!r})")
 
     # execute the python and get the result
     value = eval(ffi.string(source), locals(), {"sys": sys})
 
-    return XLOPER12.from_python(value).to_result()
+    return XLOPER12.from_python(value).as_result()
+
+
+@addin.callback("LPXLOPER12 (*)(LPXLOPER12)", onerror=onerror)
+def py_repr(value):
+    logger.info(f"py_repr({value!r})")
+    value = XLOPER12.from_excel(value)
+    return XLOPER12.from_python(repr(value)).as_result()
 
 
 @addin.def_extern(error=0)
 def xlAutoOpen():
-    logger.info("xlAutoOpen!")
+    logger.info("xlAutoOpen")
     name = xll.Excel(lib.xlGetName)
 
-    logger.info(f"Python XLL Loaded from {name}")
+    logger.info(f"xlGetName() = {name!s}")
 
     # import debugpy
     # debugpy.listen(5678)
@@ -96,6 +103,23 @@ def xlAutoOpen():
         "_0001",
         "Q",
         "xlfCaller",
+        "",
+        1,
+        "Python Builtins",
+        None,
+        None,
+        None,
+        None,
+    )
+
+    # exports['_001'] = xlfCaller
+    _xlthunk.lib.SetThunkProc(b"_0002", py_repr)
+    xll.Excel(
+        lib.xlfRegister,
+        _xlthunk.__file__,
+        "_0002",
+        "QQ",
+        "PY.REPR",
         "",
         1,
         "Python Builtins",

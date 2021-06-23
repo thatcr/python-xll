@@ -15,6 +15,12 @@ def test_exception(excel_application):
     # codes from ERROR.TYPE are not th esame as xlerrValue...
 
 
+def test_repr(excel_application):
+    assert (
+        excel_application.ExecuteExcel4Macro("PY.REPR(1)") == "<XLOPER12 xltypeNum 1.0>"
+    )
+
+
 def test_one_plus_one(excel_application):
     assert sys.version == excel_application.ExecuteExcel4Macro('PY.EVAL("sys.version")')
     #
