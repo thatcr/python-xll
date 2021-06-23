@@ -77,3 +77,8 @@ def test_result():
     xlAutoFree12(result)
     assert sys.getrefcount(xloper) == refcount
     del xloper
+
+
+def test_wrong_pointer_type():
+    with pytest.raises(TypeError):
+        XLOPER12(ptr="The Wrong Type!")

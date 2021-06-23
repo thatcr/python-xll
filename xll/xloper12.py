@@ -26,7 +26,10 @@ _xltypes = {
 
 class XLOPER12(object):
     def __init__(self, ptr=None):
-        if ptr:
+        if ptr is not None:
+            if type(ptr) is not ffi.getctype("XLOPER12[]"):
+                raise TypeError("can only initialize XLOPER12 from XLOPER12[]")
+
             self.ptr = ptr
             return
 
@@ -140,6 +143,9 @@ class XLOPER12(object):
 
     def __del__(self):
         log.debug("XLOPER.__del__ called")
-        if self.ptr[0].xltype & lib.xltypeStr:
+        if hasattr(self, "ptr") and self.ptr[0].xltype & lib.xltypeStr:
             lib.free(self.ptr[0].val.str)
             self.ptr[0].xltype = lib.xltypeMissing
+
+        # TODO call xlfree here if the bit is set?
+        # _xlcall import lib
