@@ -84,9 +84,14 @@ def test_result():
         xloper.as_result()
 
 
-def test_wrong_pointer_type():
+def test_wrong_inits():
     with pytest.raises(TypeError):
-        XLOPER12(ptr="The Wrong Type!")
+        XLOPER12(_from_excel="The Wrong Type!")
+
+    # check that we can't accidently do a stupid-init of XLOPER(123) and get
+    # something bad
+    with pytest.raises(TypeError):
+        XLOPER12(123)
 
 
 def test_from_excel():

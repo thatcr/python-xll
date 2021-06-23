@@ -25,7 +25,7 @@ _xltypes = {
 
 
 class XLOPER12(object):
-    def __init__(self, _from_excel=None):
+    def __init__(self, *, _from_excel=None):
         if _from_excel is not None:
             self.ptr = ffi.cast("LPXLOPER12", _from_excel)
             return
