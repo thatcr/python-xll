@@ -82,11 +82,26 @@ import logging
 import os.path
 import sys
 
+from cffi import FFI
+
+ffi = FFI()
+ffi.cdef(
+    '''
+   void OutputDebugStringW(const wchar_t*);
+'''
+)
+kernel32 = ffi.dlopen("kernel32.dll")
+
+class OutputDebugStringWriter:
+    def write(self, value):
+        kernel32.OutputDebugStringW(value.rstrip())
+
+    def flush(self):
+        pass
+
+
 # patch the exceutable path, or lots of modules get confused
 sys.executable = os.path.join(sys.prefix, "python.exe")
-
-from xll.output import OutputDebugStringWriter
-
 import _python_xll
 
 
