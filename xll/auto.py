@@ -8,7 +8,7 @@ from _python_xll import ffi as addin
 import _xlthunk
 
 from _xlcall import lib, ffi
-from .convert import to_xloper, to_xloper_result
+from .xloper12 import XLOPER12
 
 logger = logging.getLogger(__name__)
 
@@ -38,13 +38,12 @@ def onerror(exception, exc_value, traceback):
 def xlfCaller():
     logger.info("Called xlfCaller")
 
-    caller = Excel(lib.xlfCaller, convert=False)
+    caller = Excel(lib.xlfCaller)
 
     text = Excel(lib.xlSheetNm, caller)
+    logger.info(f"{text!r}")
 
-    logger.info(f"{ffi.string(text.val.str)}")
-
-    return to_xloper_result(text)
+    return XLOPER12(str(text)).to_result()
 
 
 _cache = []
@@ -60,7 +59,7 @@ def py_eval(source):
     # execute the python and get the result
     value = eval(ffi.string(source), locals(), {"sys": sys})
 
-    return to_xloper_result(value)
+    return XLOPER12(value).to_result()
 
 
 @addin.def_extern(error=0)
@@ -138,5 +137,4 @@ def xlAddInManagerInfo12(xloper):
     # this will invoke xlAutoFree on this addin, not the thunk...
     logger.debug(f"xlAddInManagerInfo12({xloper!r}")
 
-    result = to_xloper_result(sys.version)
-    return result
+    return XLOPER12(sys.version).to_result()

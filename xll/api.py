@@ -1,26 +1,23 @@
 import logging
 
-from _xlcall import ffi, lib
-from .convert import to_xloper, from_xloper
+from _xlcall import lib
+from .xloper12 import XLOPER12
 
 logger = logging.getLogger(__name__)
 
 
-def Excel(xlf, *args, convert=True):
-    res = ffi.new("LPXLOPER12")
+def Excel(xlf, *args):
+    res = XLOPER12()
 
-    args = list(map(to_xloper, args))
+    args = [XLOPER12.from_python(x) for x in args]
 
     if args:
-        ret = lib.Excel12(int(xlf), res, len(args), *args)
+        ret = lib.Excel12(int(xlf), res.ptr, len(args), [x.ptr for x in args])
     else:
-        ret = lib.Excel12(int(xlf), res, len(args))
+        ret = lib.Excel12(int(xlf), res.ptr, len(args))
 
     if ret:
         logger.debug(f"\tCall Failed {ret!r}")
         raise RuntimeError(str(ret))
 
-    if not convert:
-        return res
-
-    return from_xloper(res)
+    return res

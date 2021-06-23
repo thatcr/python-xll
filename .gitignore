@@ -7,4 +7,6 @@ Debug/
 Release/
 build/
 dist/
+htmlcov/
 *.egg-info/
+.coverage*
