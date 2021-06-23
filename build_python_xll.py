@@ -100,11 +100,6 @@ class OutputDebugStringWriter:
         pass
 
 
-# patch the exceutable path, or lots of modules get confused
-sys.executable = os.path.join(sys.prefix, "python.exe")
-import _python_xll
-
-
 # send all output to the debugging console
 sys.stderr = sys.stdout = OutputDebugStringWriter()
 # log to the new stdout/stderr channels
