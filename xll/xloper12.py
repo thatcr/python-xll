@@ -144,7 +144,6 @@ class XLOPER12(object):
         return self.ptr
 
     def __del__(self):
-        log.debug("XLOPER.__del__ called")
         if hasattr(self, "ptr") and self.ptr.xltype & lib.xltypeStr:
             lib.free(self.ptr.val.str)
             self.ptr.xltype = lib.xltypeMissing
