@@ -150,3 +150,10 @@ class XLOPER12(object):
 
         # TODO call xlfree here if the bit is set?
         # _xlcall import lib
+
+
+# need to incvert this, as XLOPER12 has additional types to represent
+
+
+class OPER12(XLOPER12):
+    pass
