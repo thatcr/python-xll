@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 def Excel(xlf, *args):
     res = XLOPER12()
 
-    args = [XLOPER12.from_python(x) if not isinstance(XLOPER12, x) else x for x in args]
+    args = [XLOPER12.from_python(x) if not isinstance(x, XLOPER12) else x for x in args]
 
     if args:
         ret = lib.Excel12(int(xlf), res.ptr, len(args), *(x.ptr for x in args))
